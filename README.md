@@ -1,2 +1,1 @@
-# CS485
-CS485 project
+# AI Resume Generator
