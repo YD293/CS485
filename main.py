@@ -1,6 +1,7 @@
 # main.py
 
 from openai import OpenAI
+import os
 
 # Load API key
 with open("openai_key.txt") as f:
@@ -35,6 +36,16 @@ for i in range(num_jobs):
     desc = input(f"Job {i+1} Description: ")
     work_experiences.append(f"{title} at {company} ({time}): {desc}")
 
+# === Old Resume Upload (Optional) ===
+print("\nPaste your old resume content here if you'd like to reuse parts of it. Press ENTER twice when done:")
+resume_lines = []
+while True:
+    line = input()
+    if line.strip() == "":
+        break
+    resume_lines.append(line)
+resume_text = "\n".join(resume_lines)
+
 # === Job Description ===
 print("\nPaste the job description below. Press ENTER twice when you're done:")
 job_lines = []
@@ -45,25 +56,44 @@ while True:
     job_lines.append(line)
 job_description = "\n".join(job_lines)
 
+# === Field Logic ===
+linkedin_line = f"LinkedIn: {linkedin}" if linkedin.strip() else ""
+experience_block = (
+    "No work experience yet."
+    if len(work_experiences) == 0 and resume_text.strip() == ""
+    else "\n".join(work_experiences)
+)
+
 # === Prompt Construction ===
 prompt = f"""
-Given the following candidate profile and job description, generate a professional resume.
-Highlight the most relevant experience, skills, and projects for the specific job.
-Format using clear sections: Summary, Skills, Experience, Education, Projects.
+You are a helpful AI assistant that creates resumes. Use only the content provided.
+Do not fabricate fields like location, graduation dates, or job titles.
+If any fields are missing, skip them.
 
 Candidate Profile:
 Name: {name}
 Email: {email}
-LinkedIn: {linkedin}
+{linkedin_line}
 Education: {education}
-Skills: {skills}
+
 Projects:
 {chr(10).join(projects_list)}
+
 Experience:
-{chr(10).join(work_experiences)}
+{experience_block}
+
+Skills:
+{skills}
+
+Old Resume (for reuse, if applicable):
+{resume_text}
 
 Job Description:
 {job_description}
+
+Instructions:
+Use the old resume only if the user didn’t overwrite a section. If a section is new, replace the old one.
+Place 'Skills' at the end. Do not add a 'Summary' section.
 """
 
 # === Generate Resume ===
