@@ -1,8 +1,6 @@
-# cover_letter.py
-
 from openai import OpenAI
 
-# Load your OpenAI API key
+# Load OpenAI API key
 with open("openai_key.txt") as f:
     api_key = f.read().strip()
 
@@ -13,6 +11,12 @@ name = input("Your Full Name: ")
 email = input("Email (optional): ")
 linkedin = input("LinkedIn (optional): ")
 education = input("Education: ")
+
+# === Recruiter Info ===
+recruiter_name = input("Recruiter's Name: ")
+recruiter_title = input("Recruiter's Title: ")
+company_name = input("Company Name: ")
+company_address = input("Company Address (Street, City, State): ")
 
 # === Skills ===
 skills = input("List your skills (comma separated): ")
@@ -35,6 +39,16 @@ for i in range(num_jobs):
     desc = input(f"Job {i+1} Description: ")
     work_experiences.append(f"{title} at {company} ({time}): {desc}")
 
+# === Upload Old Resume (Paste manually) ===
+print("\nPaste your old resume here if you want us to reuse it. Press ENTER twice when done:")
+resume_lines = []
+while True:
+    line = input()
+    if line.strip() == "":
+        break
+    resume_lines.append(line)
+resume_text = "\n".join(resume_lines)
+
 # === Job Description Input ===
 print("\nPaste the job description below. Press ENTER twice when done:")
 job_lines = []
@@ -45,23 +59,59 @@ while True:
     job_lines.append(line)
 job_description = "\n".join(job_lines)
 
+# === Conditional content handling ===
+linkedin_line = f"LinkedIn: {linkedin}" if linkedin.strip() else ""
+experience_block = (
+    "No work experience yet."
+    if len(work_experiences) == 0 and resume_text.strip() == ""
+    else "\n".join(work_experiences)
+)
+
 # === Prompt Construction ===
 prompt = f"""
-Given the following candidate profile and job description, write a personalized, professional cover letter.
-Use a standard format (greeting, body paragraphs, closing) and tailor the letter to the role.
+You are a professional cover letter writer.
 
-Candidate Profile:
+Please generate a formal cover letter using the structure below. Do not invent any fields or information.
+Only use the data provided. Use the old resume content only to supplement gaps in the new input.
+
+### Required Format:
+- Header:
+    Candidate's name and contact info
+    Recruiter's name, title, company, address
+    Date
+    RE: Job Title
+- Greeting (Dear [Recruiter Name],)
+- First paragraph: Why the applicant is interested in this job at this company
+- Second paragraph: Prior experience relevant to the role
+- Third paragraph: Passion for company/values and alignment
+- Closing: request for follow-up, formal signature
+- Final line: “Enclosure: Resume”
+
+### Candidate Info:
 Name: {name}
 Email: {email}
-LinkedIn: {linkedin}
+{linkedin_line}
 Education: {education}
-Skills: {skills}
+
 Projects:
 {chr(10).join(projects_list)}
-Experience:
-{chr(10).join(work_experiences)}
 
-Job Description:
+Experience:
+{experience_block}
+
+Skills:
+{skills}
+
+Old Resume Content (optional):
+{resume_text}
+
+### Recruiter Info:
+{recruiter_name}
+{recruiter_title}
+{company_name}
+{company_address}
+
+### Job Description:
 {job_description}
 """
 
@@ -70,7 +120,7 @@ print("\nGenerating cover letter... Please wait...\n")
 response = client.chat.completions.create(
     model="gpt-4o-mini",
     messages=[
-        {"role": "system", "content": "You are a helpful AI assistant that writes professional cover letters."},
+        {"role": "system", "content": "You are a helpful assistant that writes professional cover letters."},
         {"role": "user", "content": prompt}
     ]
 )
@@ -86,4 +136,3 @@ with open("cover_letter_output.txt", "w") as f:
     f.write(result)
 
 print("\n✅ Cover letter saved as cover_letter_output.txt")
-
