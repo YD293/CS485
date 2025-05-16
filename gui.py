@@ -154,7 +154,13 @@ Job Description:
 {job_description}
 
 Instructions:
-Use the old resume only if the user didn’t overwrite a section. If phone number or address is provided above, use those values instead of anything in the uploaded resume. Place 'Skills' at the end. Do not add a 'Summary' section.
+Always include all user-provided experiences and projects, even if they seem less relevant to the job.
+Do not invent new experience entries.
+If phone number or address is provided above, use those values instead of anything in the uploaded resume.
+Only reorder and rewrite the skills section so that the most relevant skills appear first.
+Do not reorder or deprioritize other sections like Projects or Experience — keep them in the order entered.
+Use only the skills the user provided — do not add new ones. Place 'Skills' at the end. Do not add a 'Summary' section.
+
 """)
 
             with st.spinner("Generating your resume..."):
@@ -178,7 +184,7 @@ Use the old resume only if the user didn’t overwrite a section. If phone numbe
         section_choice = st.selectbox("Which section would you like to improve?", 
             ["Skills", "Experience", "Education", "Projects"])
 
-        feedback_comment = st.text_area("What would you like us to improve or change?")
+        feedback_comment = st.text_area("What would you like us to improve or change?", key="resume_feedback")
 
         if st.button("♻️ Regenerate Resume Based on Feedback"):
             if not feedback_comment.strip():
@@ -211,6 +217,8 @@ Regenerate a better version of the resume, improving only the {section_choice} s
 # === Cover Letter Generator ===
 with tab2:
     st.subheader("✉️ Cover Letter Generator")
+    if "cl_result" not in st.session_state:
+        st.session_state.cl_result = ""
 
     st.markdown("#### Recruiter / Company Info")
     recruiter_name = st.text_input("Recruiter's Name", placeholder="e.g., Ms. Meena Nagappan")
@@ -286,16 +294,26 @@ with tab2:
                 {resume_text}
 
                 ### Recruiter Info:
-                {recruiter_name}
-                {recruiter_title}
-                {company_name}
-                {company_address}
+                Recruiter Name: {recruiter_name}  
+                Recruiter Title: {recruiter_title}  
+                Company: {company_name}  
+                Address: {company_address}
+
 
                 ### Job Description:
                 {job_desc_cl}
 
-                Instructions:
-                If phone number or address is provided above, use them instead of anything found in the uploaded resume.
+Instructions:
+If phone number or address is provided above, use them instead of anything found in the uploaded resume.
+
+When writing the body of the letter, focus primarily on experiences and skills that are relevant to the job description.
+If the job is technical (e.g., Software Engineer), highlight Computer Science education, software-related projects, and technical skills first.
+Only mention non-technical experience (e.g., warehouse work) if it contributes transferable skills such as leadership, team management, or operations — and do so briefly.
+
+Tailor the language and examples to the job description. Avoid repeating the same structure across different applications.
+
+Keep the tone professional and the structure consistent with the format above.
+
             """)
 
             with st.spinner("Generating your cover letter..."):
@@ -306,8 +324,48 @@ with tab2:
                         {"role": "user", "content": cl_prompt}
                     ]
                 )
-                cl_result = cl_response.choices[0].message.content
+                st.session_state.cl_result = cl_response.choices[0].message.content
                 st.success("✅ Cover letter generated!")
-                st.text(cl_result)
-                st.download_button("💾 Download Cover Letter", cl_result, file_name="cover_letter.txt", mime="text/plain")
+                st.text(st.session_state.cl_result)
+    # === Feedback Regeneration System for Cover Letter ===
+    if st.session_state.cl_result.strip():
+        st.markdown("---")
+        st.subheader("✏️ Suggest Improvements for Cover Letter")
 
+        cl_feedback_section = st.selectbox(
+            "Which part would you like to improve?",
+            ["Opening Paragraph", "Experience Paragraph", "Closing Paragraph", "Tone/Style", "Formatting"]
+        )
+
+        cl_feedback_comment = st.text_area("What would you like us to improve or change?", key="cl_feedback")
+
+        if st.button("♻️ Regenerate Cover Letter Based on Feedback"):
+            if not cl_feedback_comment.strip():
+                st.warning("Please write some feedback.")
+            else:
+                cl_feedback_prompt = f"""
+You are a helpful AI assistant improving cover letters.
+
+Here is the current cover letter:
+{st.session_state.cl_result}
+
+The user wants to improve the **{cl_feedback_section}** of the letter.
+User Feedback:
+{cl_feedback_comment}
+
+Please regenerate the cover letter, improving only that section while keeping all other sections the same.
+"""
+
+                with st.spinner("Regenerating..."):
+                    cl_improved = client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[
+                            {"role": "system", "content": "You are a cover letter refinement assistant."},
+                            {"role": "user", "content": cl_feedback_prompt}
+                        ]
+                    )
+                    st.session_state.cl_result = cl_improved.choices[0].message.content
+                    st.success("✅ Cover letter improved!")
+                    st.text(st.session_state.cl_result)
+                    st.download_button("💾 Download Improved Cover Letter", st.session_state.cl_result, file_name="cover_letter_improved.txt", mime="text/plain")
+    st.download_button("💾 Download Cover Letter", st.session_state.cl_result, file_name="cover_letter.txt", mime="text/plain")
