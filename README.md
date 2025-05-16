@@ -5,7 +5,7 @@ This project can write or tailor resumes and cover letters based on user input t
 Tech used: ChatGPT (openAI API), streamlit, dock2txt, pdfplumber
 
 To run:
-Step1: clone the repository:
+Step1: clone the repository(I made this repo public so it should be fine):
 git clone https://github.com/YD293/CS485.git
 cd CS485
 
