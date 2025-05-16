@@ -16,7 +16,7 @@ source venv/bin/activate
 step3: install dependencies
 pip install -r requirements.txt
 
-step4: check openai_key and see if they are availiable to use, and then paste into this file:
+step4: the secret key may block the clone and pull request, then a file have to be manually made, and check openai_key and see if they are availiable to use, and then paste into this file:
 openai_key.txt
 
 step5: run the app
