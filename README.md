@@ -25,3 +25,6 @@ streamlit run gui.py
 OR: another way to run the code
 cd dist
 ./launch_app
+
+step6: input
+In the UI, just input everything you want to, file upload is also allowed, and then it will generate the resume or the cover letter. If you dont like the output, you can tell the program where you think it can improve, then it will improve. Finally you can download the output in txt file.
