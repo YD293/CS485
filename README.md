@@ -7,14 +7,19 @@ Tech used: ChatGPT (openAI API), streamlit, dock2txt, pdfplumber
 To run:
 Step1: clone the repository(I made this repo public so it should be fine):
 git clone https://github.com/YD293/CS485.git
+OR:
+gh repo clone YD293/CS485
+THEN:
 cd CS485
 
 step 2: create virtual environment
 python3 -m venv venv
+IF YOU ALREADY HAVE VENV:
 source venv/bin/activate
 
 
 step3: install dependencies
+
 pip install -r requirements.txt
 
 step4: the secret key may block the clone and pull request, then a file openai_key.txt have to be manually made, and check openai_key and see if they are availiable to use, and then paste into this file:
